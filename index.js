@@ -1,13 +1,16 @@
 import { Client } from 'discord.js-selfbot-v13';
 import { joinVoiceChannel } from '@discordjs/voice';
-
-const client = new Client({
-    checkUpdate: false,
-});
+import express from 'express';
 
 const VOICE_CHANNEL_ID = process.env.VOICE_CHANNEL_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const PORT = process.env.PORT || 3000;
+
+const client = new Client({
+    checkUpdate: false,
+});
+const app = express();
 
 client.once('ready', async () => {
     console.log(`Logado com sucesso como ${client.user.tag}!`);
@@ -35,3 +38,11 @@ client.once('ready', async () => {
 });
 
 await client.login(ACCESS_TOKEN);
+
+app.get('/', (req, res) => {
+    res.send('Bot está online!');
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
