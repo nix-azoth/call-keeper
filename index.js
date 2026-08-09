@@ -36,6 +36,16 @@ client.on('ready', async () => {
     await connect();
 });
 
+client.on('voiceStateUpdate', async (oldState, newState) => {
+    if (newState.member.id === client.user.id) {
+        if (oldState.channelId && !newState.channelId) {
+            setTimeout(async () => {
+                await connect();
+            }, 2000);
+        }
+    }
+});
+
 await client.login(ACCESS_TOKEN);
 
 app.get('/', (req, res) => {
