@@ -12,29 +12,28 @@ const client = new Client({
 });
 const app = express();
 
-client.on('ready', async () => {
-    console.log(`Logado com sucesso como ${client.user.tag}!`);
-
+async function connect() {
     try {
         const guild = await client.guilds.fetch(GUILD_ID);
         const channel = await guild.channels.fetch(VOICE_CHANNEL_ID);
 
         if (channel && channel.isVoice()) {
-            const _ = joinVoiceChannel({
+            joinVoiceChannel({
                 channelId: channel.id,
                 guildId: guild.id,
                 adapterCreator: guild.voiceAdapterCreator,
                 selfDeaf: true,
                 selfMute: true,
             });
-
-            console.log(`Conectado com sucesso ao canal de voz: ${channel.name}`);
-        } else {
-            console.log('Canal de voz não encontrado ou inválido.');
         }
     } catch (error) {
-        console.error('Erro ao tentar entrar no canal de voz:', error);
+        setTimeout(connect, 10000);
     }
+}
+
+client.on('ready', async () => {
+    console.log(`Logado com sucesso como ${client.user.tag}!`);
+    await connect();
 });
 
 await client.login(ACCESS_TOKEN);
