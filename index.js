@@ -1,5 +1,5 @@
-const { Client } = require('discord.js-selfbot-v13');
-const { joinVoiceChannel } = require('@discordjs/voice');
+import { Client } from 'discord.js-selfbot-v13';
+import { joinVoiceChannel } from '@discordjs/voice';
 
 const client = new Client({
     checkUpdate: false,
