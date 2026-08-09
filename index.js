@@ -12,7 +12,7 @@ const client = new Client({
 });
 const app = express();
 
-client.once('ready', async () => {
+client.on('ready', async () => {
     console.log(`Logado com sucesso como ${client.user.tag}!`);
 
     try {
