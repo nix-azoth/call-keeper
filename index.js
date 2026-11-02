@@ -2,20 +2,17 @@ import { Client } from 'discord.js-selfbot-v13';
 import { joinVoiceChannel } from '@discordjs/voice';
 import express from 'express';
 
-const VOICE_CHANNEL_ID = process.env.VOICE_CHANNEL_ID;
-const GUILD_ID = process.env.GUILD_ID;
+const TARGETS = JSON.parse(process.env.TARGETS);
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const PORT = process.env.PORT || 3000;
 
-const client = new Client({
-    checkUpdate: false,
-});
+const client = new Client({ checkUpdate: false });
 const app = express();
 
-async function connect() {
+async function connect({ guildId, channelId }) {
     try {
-        const guild = await client.guilds.fetch(GUILD_ID);
-        const channel = await guild.channels.fetch(VOICE_CHANNEL_ID);
+        const guild = await client.guilds.fetch(guildId);
+        const channel = await guild.channels.fetch(channelId);
 
         if (channel && channel.isVoice()) {
             joinVoiceChannel({
@@ -27,31 +24,25 @@ async function connect() {
             });
         }
     } catch (error) {
-        setTimeout(connect, 10000);
+        console.error(`Falha em ${guildId}:`, error.message);
+        setTimeout(() => connect({ guildId, channelId }), 10000);
     }
 }
 
 client.on('ready', async () => {
     console.log(`Logado com sucesso como ${client.user.tag}!`);
-    await connect();
+    await Promise.all(TARGETS.map(connect));
 });
 
-client.on('voiceStateUpdate', async (oldState, newState) => {
-    if (newState.member.id === client.user.id) {
-        if (oldState.channelId && !newState.channelId) {
-            setTimeout(async () => {
-                await connect();
-            }, 2000);
-        }
+client.on('voiceStateUpdate', (oldState, newState) => {
+    if (newState.member.id !== client.user.id) return;
+    if (oldState.channelId && !newState.channelId) {
+        const target = TARGETS.find(t => t.guildId === oldState.guild.id);
+        if (target) setTimeout(() => connect(target), 2000);
     }
 });
 
 await client.login(ACCESS_TOKEN);
 
-app.get('/', (req, res) => {
-    res.send('Bot está online!');
-});
-
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-});
+app.get('/', (req, res) => res.send('Bot está online!'));
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
